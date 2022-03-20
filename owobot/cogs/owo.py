@@ -1,3 +1,4 @@
+import discord
 from discord.ext import commands
 from misc import owolib, common
 from misc.db import OwoChan
@@ -32,21 +33,23 @@ class Owo(commands.Cog):
         if not OwoChan.select().where(OwoChan.channel == message.channel.id).exists():
             return
         text = message.content
-        owo_score = owolib.score(text)
-        if owo_score > 1 or not contains_alpha(text):
+        if owolib.score(text) > 1 or not contains_alpha(text) or text.startswith(self.bot.command_prefix):
             return
-        owofied = owolib.owofy(text)
-        while owolib.score(owofied) <= 1:
-            owofied = owolib.owofy(owofied)
         webhooks = await message.channel.webhooks()
         if len(webhooks) > 0:
             webhook = webhooks[0]
         else:
             webhook = await message.channel.create_webhook(name="if you read this you're cute")
+        owofied = owolib.owofy(text)
+        while owolib.score(owofied) <= 1:
+            owofied = owolib.owofy(owofied)
         author_name = owolib.owofy(message.author.display_name)
         author_avatar_url = message.author.avatar.url
+        mentions = discord.AllowedMentions(everyone=False, roles=False, users=True)
         await webhook.send(
             content=common.sanitize_send(owofied),
             username=author_name,
-            avatar_url=author_avatar_url)
+            avatar_url=author_avatar_url,
+            allowed_mentions=mentions
+        )
         await message.delete()
