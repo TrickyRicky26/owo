@@ -36,6 +36,8 @@ class Owo(commands.Cog):
         if owo_score > 1 or not contains_alpha(text):
             return
         owofied = owolib.owofy(text)
+        while owolib.score(owofied) <= 1:
+            owofied = owolib.owofy(owofied)
         webhooks = await message.channel.webhooks()
         if len(webhooks) > 0:
             webhook = webhooks[0]
